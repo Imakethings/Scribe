@@ -45,10 +45,11 @@ Moves name from the -viewing to the -finished list.
 ```python
 scribe -username <username>
 ```
-Stores your www.myanimelist.com username.
+Stores your www.myanimelist.net username.
 
 ```python
 scribe -password <password>
 ```
-Stores your www.myanimelist.com password.
-### Do this at own risk! We will prompt you for your password each sync if left empty.
+Stores your www.myanimelist.net password.
+----------
+Do this at own risk! We will prompt you for your password each sync if left empty.
