@@ -1,0 +1,120 @@
+#!/usr/bin/env Python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2014 Mirko van der Waal
+#
+# Animu - Keep track of anime the easy way.
+#
+# Distributed under terms of the MIT license.
+
+from sys import argv
+import os
+
+class Anime():
+    def __init__(self):     
+        self.corepath   = "~/.config/animu"
+
+        self.action     = None
+        self.temporary  = []
+        # Change the path and or the parameters if you wish.
+        self.watch      = ["~/.config/animu/watch.dat",    "-watch",   0]
+        self.viewing    = ["~/.config/animu/viewing.dat",  "-viewing", 1]
+        self.finished   = ["~/.config/animu/finished.dat", "-finished",2]
+            
+    def returnAction(self):
+        """
+        This returns the current action(list) parameter in string format.
+        """
+        if (len(argv) > 1):
+            if argv[1] in [self.watch[1], self.viewing[1], self.finished[1]]:
+                self.action = argv[1]
+                return True
+            else: 
+                self.action = None 
+                return False
+        else: 
+            self.action = None
+            return False
+        
+    def createAnimu(self):
+        if not os.path.exists(self.corepath):
+            os.makedirs(self.corepath)
+            open(self.watch[0], 'a').close()
+            open(self.viewing[0], 'a').close()
+            open(self.finished[0], 'a').close()
+        else: return
+
+    def listAction(self):
+        """
+        Prints the animes you need to watch, have watched or are watching.
+        """
+
+        if self.action == self.watch[1]: self.temporary = self.watch
+        if self.action == self.viewing[1]: self.temporary = self.viewing
+        if self.action == self.finished[1]: self.temporary = self.finished
+
+        actionSentence = [  "You need to watch %i more anime(s).",
+                            "You're watching %i anime(s).",
+                            "You finished %i anime(s)." ]
+
+        try: stash = [line.strip() for line in open(self.temporary[0])]
+        except: print "The requested path seems to be unavailable."; return
+        print "" + actionSentence[self.temporary[2]]%len(stash)
+        for val in xrange(1, len(stash) + 1):
+            print "[%i] - %s"%(val, stash[val - 1])
+        return
+
+    def handleAction(self):
+        if (len(argv) > 2):
+            if argv[1] in ["-add", "-seen", "-remove"]:
+                self.action = argv[1]
+                return self.action
+            else:
+                self.action = None
+                return self.action
+        else:
+            self.action = None
+            return self.action
+
+    def performAction(self, value):
+        if value == "-add":
+            try: stash = [line.strip() for line in open(self.watch[0])]
+            except: print "The requested path seems to be unavailable."; return
+            for val in xrange(0, len(stash)):
+                if stash[val] == argv[2]:
+                    print "You already have this added!"
+                    return 
+            stash.append(argv[2])
+            with open(self.watch[0], "w") as f:
+                for val in xrange(0, len(stash)):
+                    f.write(stash[val] + "\n")
+            f.close()
+        elif value == "-remove":
+            try: stash = [line.strip() for line in open(self.watch[0])]
+            except: print "The requested path seems to be unavailable."; return
+            for val in xrange(0, len(stash)):
+                if stash[val] == argv[2]: 
+                    del stash[val] 
+                    break    
+            with open(self.watch[0], "w") as f:
+                for val in xrange(0, len(stash)):
+                    f.write(stash[val] + "\n")
+            f.close()
+        
+Player = Anime()
+
+if len(argv) > 1:
+    if argv[1] == "-help": print """
+    -watch\t [Returns a list of animes you need to watch]
+    -finished\t [Returns a list of animes you have seen]
+    -viewing\t [Returns a list of animes you are viewing]
+    
+    -add <n>\t [Adds specified anime to the watch list]
+    -remove <n>\t [Removes specified anime of the watch list]
+    
+    # More shit comming soon.
+    """
+Player.createAnimu()
+if Player.returnAction(): Player.listAction()
+else: Player.performAction(Player.handleAction())
