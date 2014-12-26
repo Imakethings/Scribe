@@ -51,5 +51,5 @@ Stores your www.myanimelist.net username.
 scribe -password <password>
 ```
 Stores your www.myanimelist.net password.
-----------
-Do this at own risk! We will prompt you for your password each sync if left empty.
+
+######Do this at own risk! We will prompt you for your password each sync if left empty.
