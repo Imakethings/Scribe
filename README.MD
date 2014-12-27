@@ -1,7 +1,23 @@
-
 # Scribe
+## Functions
 
-## Listing.
+Scribe action.
+```python
+def actionName()
+```
+This is a action function which revolves around an action it is to complete.
+This could be anything from moving to adding to syncing.
+
+
+Scribe get.
+```python
+def getName()
+```
+This get function always returns something and only returns things.
+It is used to complete checks on values.
+
+## Commands
+### Listing
 
 ```python
 scribe -watch
@@ -18,7 +34,7 @@ scribe -finished
 ```
 Returns a list of things you finished (Showoff!)
 
-## Manipulating.
+### Manipulating.
 
 ```python
 scribe -add [-Ww, -Vv, -Ff] <name> <opt:episodes>
@@ -40,7 +56,7 @@ scribe -finish <name>
 ```
 Moves name from the -viewing to the -finished list.
 
-## Syncing.
+### Syncing.
 
 ```python
 scribe -username <username>
