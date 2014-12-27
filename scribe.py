@@ -1,4 +1,4 @@
-#!/usr/bin/env Python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim:fenc=utf-8
 #
@@ -11,40 +11,6 @@
 from sys import argv
 from os.path import expanduser
 import os
-
-class Arguments(object):
-    #!from sys import argv
-    def __init__(self):
-        # Include the name of the script in the arguments.
-        self.script     = True
-        
-        # The array that takes all the given argv[]s and stashes them.
-        self.argvs      = []
-        for argument in argv: self.argvs.append(argument)
-        if not self.script:   self.argvs.pop(0)
-        
-        # The array with all the arguments for calling.
-        self.arguments  = [] 
-    def Length(self, arglist):
-        if arglist:
-            return len(self.arguments)
-        else:
-            return len(self.argvs)
-
-    def Value(self, location):
-        return self.argvs[location]
-
-    def Add(self, required, static, value):
-        self.arguments.append([required, static, value])
-    
-    def __Run__():
-        if self.script:
-            val = 1
-        else: 
-            val = 0
-        for arguments in self.arguments:
-            if self.argv[val] == argument[0]:
-                return True
 
 class Anime():
     def __init__(self):
@@ -77,9 +43,12 @@ class Anime():
         """
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-            open(self.watch[1], 'a').close()
-            open(self.viewing[1], 'a').close()
-            open(self.finished[1], 'a').close()
+            if not os.path.exists(self.watch[1]):
+                open(self.watch[1], 'a').close()
+            if not os.path.exists(self.viewing[1]):
+                open(self.viewing[1], 'a').close()
+            if not os.path.exists(self.finished[1]):
+                open(self.finished[1], 'a').close()
         else: return
 
     def handleArguments(self):
@@ -90,22 +59,22 @@ class Anime():
             self.arguments.append(argument)
         self.arguments.pop(0)
         
-        if   len(self.arguments) == 0: return 
-        elif len(self.arguments) == 1 and self.arguments[0] in self.listCommands:
+        if   len(self.arguments) in [0]: self.DEFAULT()
+        elif len(self.arguments) in [1] and self.arguments[0] in self.listCommands:
             self.actionList("self.%s"%self.arguments[0].replace("-", ""))
 
-        elif len(self.arguments) == 2 and self.arguments[0] == self.moveCommands[0]:
+        elif len(self.arguments) in [2] and self.arguments[0] == self.moveCommands[0]:
             self.actionView()
 
-        elif len(self.arguments) == 2 and self.arguments[0] == self.moveCommands[1]:
+        elif len(self.arguments) in [2] and self.arguments[0] == self.moveCommands[1]:
             self.actionFinish()
 
         elif len(self.arguments) in [3, 4] and self.arguments[0] == self.manCommands[0]:
-            self.actionAdd()
+            self.actionAdd("", "")
 
         elif len(self.arguments) in [3, 4] and self.arguments[0] == self.manCommands[1]:
-            self.actionRemove()
-        else: return
+            self.actionRemove("", "")
+        else: self.DEFAULT()
 
     def actionList(self, parameter):
         """
@@ -124,13 +93,21 @@ class Anime():
         return
      
     def actionView(self):
-        pass
+        try: watch_stash = [line.strip() for line in open(self.watch[1])]       
+        except: print "The requested path seems to be unavailable."; return
+        try: view_stash = [line.strip() for line in open(self.viewing[1])]       
+        except: print "The requested path seems to be unavailable."; return
+        for val in xrange(0, len(watch_stash)):
+            pass
 
     def actionFinish(self):
         pass
 
-    def actionAdd(self):
-        try: stash = [line.strip() for line in open(self.getParameter())]
+    def actionAdd(self, list_type, list_value):
+        if list_type == "": list_type = self.getParameter()
+        if list_value == "": list_valuue = self.arguments[2]
+
+        try: stash = [line.strip() for line in open(list_type)]
         except: print "The requested path seems to be unavailable."; return
         for val in xrange(0, len(stash)):
             if stash[val] == self.arguments[2]:
@@ -142,7 +119,10 @@ class Anime():
                 f.write(stash[val] + "\n")
         f.close()
   
-    def actionRemove(self):
+    def actionRemove(self, list_type, list_value):
+        if list_type == "": list_type = self.getParameter()
+        if list_value == "": list_value = self.arguments[2]
+
         try: stash = [line.strip() for line in open(self.getParameter())]
         except: print "The requested path seems to be unavailable."; return
         for val in xrange(0, len(stash)):
@@ -161,28 +141,16 @@ class Anime():
             return self.watch[1]
         if self.arguments[1] in ["-f", "-F"]:
             return self.finished[1]
+    
+    def DEFAULT(self):
+         print """
+        Please read the README.md located here:
+        https://github.com/Imakethings/Scribe/blob/master/README.MD
+
+        - Thanks in advance.
+        """; return
 
 Scribe = Anime()
-
-if len(argv) > 1:
-    if argv[1] == "-help": print """
-    -watch\t [Returns a list of animes you need to watch]
-    -finished\t [Returns a list of animes you have seen]
-    -viewing\t [Returns a list of animes you are viewing]
-    
-    -add <n>\t [Adds specified anime to the watch list]
-    -remove <n>\t [Removes specified anime of the watch list]
-    
-    # More shit comming soon.
-    """
-
-#Scribe.createScribe(); 
-
-#Scribe.manipulateAction("Hi")
-
-#if Scribe.returnAction(): Scribe.handleAction()
-#else: print "hmmm"
-#else: Player.performAction(Player.handleAction())
 
 Scribe.handleArguments()
 
