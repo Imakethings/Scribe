@@ -19,18 +19,10 @@ class Anime():
         # ;; Removing the expanduser will cause python to create a '~' directory.
         # ;; That will without caution mess up your home folder on OSX and Linux.
 
-        # Merely a batch of commands used later on. 
-        # ;; Not even sure If I keep these because they caused only trouble.
-        self.listCommands   = [ "-watch", "-viewing", "-finished"]
-        self.shortCommands  = [ "-w", "W", "-v", "-V", "-f", "-F"]
-        self.moveCommands   = [ "-view", "-finish" ] 
-        self.manCommands    = [ "-add", "-remove" ]
-        self.syncCommmands  = [ "-username", "-password", "-sync" ]
-        
         # The files used for scribe.
-        self.watch      = ["You need to watch i% more anime(s).", self.path + "watch.lst"]
-        self.viewing    = ["You're watching i% anime(s)", self.path + "viewing.lst"]
-        self.finished   = ["You finished i% anime(s).", self.path + "finished.lst"]
+        self.watch      = ["You need to watch", self.path + "watch.lst"]
+        self.viewing    = ["You're watching", self.path + "viewing.lst"]
+        self.finished   = ["You finished", self.path + "finished.lst"]
         
         # Reserve the array where we will stash the argv[] elements.
         self.arguments = []
@@ -45,8 +37,8 @@ class Anime():
         """
         Here we run scribe.
         """
+    
         self.actionCreate()
-
         self.actionOptarg()
 
     def actionCreate(self):
@@ -76,12 +68,11 @@ class Anime():
         
         return
 
-    def actionValidate(self, single=True, length=0, argument=0, 
-                       validation=[], succes=None, succesarg=None,
-                        failure=None, failurearg=None):
+    def actionValidate(self, single=True, length=0, argument_validation=[0, ""], 
+                       succes=None, succesarg=None, failure=None, failurearg=None):
         
         """
-        Validate the argument gived by the user and-
+        Validate the argument(s) given by the user and-
         weigh this with the other parameters.
         """
         
@@ -91,13 +82,10 @@ class Anime():
 
         # 'length' is the length the arguments given when running scribe.
         # ;; Supported values are: List.
+        
+        # 'argument_validation' compares the location and the string and sees-
+        # if they match. If they do not it will break out of it and return 'failure'
 
-        # 'argument' is which argument should be checked.
-        # ;; Supported values are: Integer.
-        
-        # 'validation' are the values used to weigh of if the 'argument' matches.
-        # ;; Supported values: List or String.
-        
         # 'succes' is what to do if the previous parameters decided they match.
         # ;; Supported values: Function.
         
@@ -111,31 +99,23 @@ class Anime():
         # 'failurearg' is the argument for the previous submitted function
         # ;; Supported values: String, variables, list.
         
-        # EXAMPLES
-        # This is a example that only checks the length param.
-        #
-        # These are both valid examples that will do said function on no arguments.
-        # ;; self.actionValidate(True, [0], 0, "Test", self.Test)
-        # ;; self.actionValidate(True, [0], succes=self.Test)
-        #
-        # This is a example for a function that has everything to it.
-        # ;; self.actionValidate(True, [1], 0, "Test", self.Test, 'testarg', self.Another)
+        if succes == failure and failurearg != None:
+            try: failure(failurearg) if failurearg != None else failure(); return
+            except: return
+        # Prevent duplicates by comparing the two set functions.
 
         try:
             if single:
-                if len(self.arguments) in length:
-                    try: succes(succesarg)
-                    except: return
-                else:
-                    try: failure(failurearg)
-                    except: return 
-            elif not single:    
-                if len(self.arguments) in length and self.arguments[argument] in validation:
-                    try: succes(succesarg)
-                    except: return
-                else:
-                    try: failure(failurearg)
-                    except: return 
+                if len(self.arguments) == length:
+                    succes(succesarg) if succesarg != None else succes(); return
+                else: failure(failurearg) if failurearg != None else failure(); return
+            elif not single:
+                if len(self.arguments) == length:
+                    for value in argument_validation:
+                        if self.arguments[value[0]] == value[1].lower(): pass
+                        else: failure(failurearg) if failurearg != None else failure(); return
+                    succes(succesarg) if succesarg != None else succes(); return
+                else: failure(failurearg) if failurearg != None else failure(); return
         except: return
 
         # 'except: return' is a default fallback for whenever things don't go-
@@ -146,102 +126,109 @@ class Anime():
         """
         Function to use the arguments set by 'actionValidate' and order these.
         """
-        pass
+        try: self.actionValidate(True, 0, succes=self.actionError)
+        except: return
+        
+        try: self.actionValidate(False, 1, [[0, "-watch"]], self.actionList, self.watch)
+        except: return
+        
+        try: self.actionValidate(False, 1, [[0, "-viewing"]], self.actionList, self.viewing)
+        except: return
+        
+        try: self.actionValidate(False, 1, [[0, "-finished"]], self.actionList, self.finished)
+        except: return
 
-        self.actionValidate(False, [1], 0, "-watch", self.actionList, self.watch)
+        try: self.actionValidate(False, 2, [[0, "-view"]], self.actionMove, [self.watch[1], self.viewing[1]])
+        except: return
 
-        #if   len(self.arguments) in [0]: self.DEFAULT()
+        try: self.actionValidate(False, 2, [[0, "-finish"]], self.actionMove, [self.viewing[1], self.finished[1]])
+        except: return
 
-        #elif len(self.arguments) in [1] and self.arguments[0] in self.listCommands:
-        #    self.actionList(self.getParameter(self.listCommands, 
-        #                                      [0, 0 ,0 ], 
-        #                                      [self.watch, self.viewing, self.finished],
-        #                                      True))
+        try: self.actionValidate(False, 3, [[0, "-add"], [1, "-v"]], self.actionAdd, [self.arguments[2], self.viewing[1]])
+        except: return
+        
+        try: self.actionValidate(False, 3, [[0, "-add"], [1, "-w"]], self.actionAdd, [self.arguments[2], self.watch[1]])
+        except: return
+        
+        try: self.actionValidate(False, 3, [[0, "-add"], [1, "-f"]], self.actionAdd, [self.arguments[2], self.finished[1]])
+        except: return
 
-        #elif len(self.arguments) in [2] and self.arguments[0] == self.moveCommands:
-        #    self.actionMove
-
-        #elif len(self.arguments) in [3] and self.arguments[0] == self.manCommands[0]:
-        #    self.actionAdd(self.getParameter(self.shortCommands,
-        #                                    [1,1,1,1,1,1],
-        #                                    [self.watch,self.viewing,self.finished],
-        #                                    False), self.arguments[2])
-
-        #elif len(self.arguments) in [3] and self.arguments[0] == self.manCommands[1]:
-        #    self.actionRemove(self.getParameter(self.shortCommands,
-        #                                    [1,1,1,1,1,1],
-        #                                    [self.watch,self.viewing,self.finished],
-        #                                    False), self.arguments[2])
-
-        #else: self.DEFAULT()
-
+        try: self.actionValidate(False, 3, [[0, "-remove"], [1, "-v"]], self.actionRemove, [self.arguments[2], self.viewing[1]])
+        except: return
+        
+        try: self.actionValidate(False, 3, [[0, "-remove"], [1, "-w"]], self.actionRemove, [self.arguments[2], self.watch[1]])
+        except: return
+ 
+        try: self.actionValidate(False, 3, [[0, "-remove"], [1, "-f"]], self.actionRemove, [self.arguments[2], self.finished[1]])
+        except: return
+  
     def actionList(self, sort):
         """
-        A nesting of all the listing to size it down a little.
+        We read the given file and return the contents in a nice viewable list.
         """
-        print sort[1]
+        # 'sort' is the list presented to the function used to read
+
+        # We try try to open a file and strip its contents through a '\n' filter.
+        # It will give us every line in the files on a place in the list.
+        try: stash = [line.strip() for line in open(sort[1])]
         
-        stash = [line.strip() for line in open(sort[1])]
-        stash = open(sort[1])
-        print stash
-        # print "The requested path seems to be unavailable."; return
-        print sort[0]%len(stash)
-        print sort
+        # Except this when it goes wrong 
+        # ;; If for some fucking reason the file doesnt exist.
+        except: print "The requested path seems to be unavailable."; return
+        
+        # How many does the user have to watch?
+        print "%s %i anime(s)"%(sort[0],len(stash)) 
+        
+        # All the animes he/she is watching in list format.
         for val in xrange(1, len(stash) + 1):
             print "[%i] - %s"%(val, stash[val - 1])
+        
+        # Default return to escape breaking outside of the function 
         return
 
-    def actionMove(self, parameter):
-        pass
-
-    def actionView(self):
-        """
-        Moves an anime from the watch to the viewing list.
-        """
-        try: watch_stash = [line.strip() for line in open(self.watch[1])]       
+    def actionMove(self, lists=[]):
+        try: watch_stash = [line.strip() for line in open(lists[0])]       
         except: print "The requested path seems to be unavailable."; return
-        try: view_stash = [line.strip() for line in open(self.viewing[1])]       
+        try: view_stash = [line.strip() for line in open(lists[1])]       
         except: print "The requested path seems to be unavailable."; return
+        
         for x in xrange(0, len(watch_stash)):
             if watch_stash[x] in view_stash:
-                print "You're already watching this..."
+                print "We've detected duplicates."    
                 return
-        self.actionRemove(self.watch[1], self.arguments[1])
-        self.actionAdd(self.viewing[1], self.arguments[1])
 
-    def actionFinish(self):
-        pass
+        self.actionRemove([self.arguments[1], lists[0]])
+        self.actionAdd([self.arguments[1], lists[1]])
 
-    def actionAdd(self, list_type=None, list_value=None):
+    def actionAdd(self, listing=[]):
         """
         Used to add anime to an list.
         """
-        
-        try: stash = [line.strip() for line in open(list_type)]
+
+        try: stash = [line.strip() for line in open(listing[1])]
         except: print "The requested path seems to be unavailable."; return
         for val in xrange(0, len(stash)):
-            if stash[val] == list_value:
+            if stash[val] == listing[0]:
                 print "You already have this added!"
                 return 
-        stash.append(list_value)
-        with open(list_type, "w") as f:
+        stash.append(listing[0])
+        with open(listing[1], "w") as f:
             for val in xrange(0, len(stash)):
                 f.write(stash[val] + "\n")
         f.close()
   
-    def actionRemove(self, list_type=None, list_value=None):
+    def actionRemove(self, listing=[]):
         """
         Used to remove anime from an list.
         """
-        print list_value
 
-        try: stash = [line.strip() for line in open(list_type)]
+        try: stash = [line.strip() for line in open(listing[1])]
         except: print "The requested path seems to be unavailable."; return
         for val in xrange(0, len(stash)):
-            if stash[val] == list_value: 
+            if stash[val] == listing[0]: 
                 del stash[val] 
                 break    
-        with open(list_type, "w") as f:
+        with open(listing[1], "w") as f:
             for val in xrange(0, len(stash)):
                 f.write(stash[val] + "\n")
         f.close()
