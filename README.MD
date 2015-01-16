@@ -1,23 +1,11 @@
 # Scribe
-## Functions
 
-Scribe action.
-```python
-def actionName()
+Install scribe
+```bash
+wget -P /usr/local/bin/scribe https://raw.githubusercontent.com/Imakethings/Scribe/master/scribe.py
 ```
-This is a action function which revolves around an action it is to complete.
-This could be anything from moving to adding to syncing.
-
-
-Scribe get.
-```python
-def getName()
-```
-This get function always returns something and only returns things.
-It is used to complete checks on values.
 
 ## Commands
-### Listing
 
 ```python
 scribe -watch
@@ -34,10 +22,8 @@ scribe -finished
 ```
 Returns a list of things you finished (Showoff!)
 
-### Manipulating.
-
 ```python
-scribe -add [-Ww, -Vv, -Ff] <name> <opt:episodes>
+scribe -add [-Ww, -Vv, -Ff] <name>
 ```
 Adds specific anime to said list if it doesn't exist already
 

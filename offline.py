@@ -38,8 +38,9 @@ class Anime():
         Here we run scribe.
         """
     
-        self.actionCreate()
-        self.actionOptarg()
+        # self.actionCreate()
+        # self.actionOptarg()
+        self.
 
     def actionCreate(self):
         
