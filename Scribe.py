@@ -104,6 +104,7 @@ def main():
                 text = []
 
                 # Put all the words in a words array.
+                if string == None: string = 'None'
                 words = string.split()
                 
                 # If the length of the string is bigger then 32. 
@@ -135,7 +136,7 @@ def main():
             return texts
 
     class Connection(object):
-            def __init__(self, url, credentials):
+            def __init__(self, url):
                 # Initialze requests object.
                 self.http = requests.Session()
 
@@ -143,19 +144,22 @@ def main():
                 self.url = url
 
                 # The credentials for the connection.
-                self.credentials = credentials
-                
+                self.credentials = [
+                Scribe.Reader.get('credentials', 'username'),
+                Scribe.Reader.get('credentials', 'password')
+                ]
+
                 # Headers to connect to MALAPI.
                 self.headers = {
-                    'User-Agent':''
-                    }
+                        'User-Agent':'',
+                        }
                 
                 # Is the connection set?
                 self.set = False;
 
                 # The content of the connection (XML)
                 self.tree = []
-            
+                
                 try: 
                     self.raw = self.http.get(
                           self.url, 
@@ -164,9 +168,9 @@ def main():
                     )
                     self.set = True
                     self.tree = ELY.fromstring(self.raw.text)
-                
+
                 except Exception as e:
-                    # print "%s"%e;
+                    print "%s"%e;
                     self.set = False
       
     class MyAnimeList():
@@ -178,15 +182,21 @@ def main():
             self.Reader = ConfigParser.ConfigParser()
             self.Reader.read(self.ini)
 
-        def Verify(self):                
-            Verify = Connection('http://myanimelist.net/api/account/verify_credentials.xml', ['', ''])
+        def setCredentials(self, variable, value):
+            self.Reader.set('credentials', variable, value)
+            
+            with open(self.ini, 'w') as f: 
+                self.Reader.write(f)
+            
 
+        def verify(self):                
+            Verify = Connection('http://myanimelist.net/api/account/verify_credentials.xml')
             if Verify.set:
                 print "The user '%s' has succefully verified, (%s)"%(Verify.tree[1].text, Verify.tree[0].text)
             else: 
-                print "You are not connected!"
+                print "Are you sure you have the correct username and password?\n$ --set-password\n$ --set-username"
 
-        def Search(self, search,
+        def search(self, search,
                    xid=False,        title=True,     english=False, 
                    score=True,       xtype=False,    episodes=True,    
                    synonyms=False,   status=True,    start_date=False, 
@@ -218,13 +228,11 @@ def main():
                 if value[1][1]: 
                     heading_values.append(value[1][0])
                 
-            Search = Connection('http://myanimelist.net/api/anime/search.xml?q=%s'%search, ['', ''])
+            Search = Connection('http://myanimelist.net/api/anime/search.xml?q=%s'%search)
 
             def appendResult(which=1):
                 if which > len(Search.tree): which = len(Search.tree)
                 
-                print len(Search.tree)
-
                 for root in xrange(0, which):
                     this = []
                     for value in attr:
@@ -246,11 +254,79 @@ def main():
 
             print table.table
 
-    ###
-    Scribe = MyAnimeList()
-    Scribe.Verify()
-    Scribe.Search('Soul eater', xid=True, xtype=True, image=True)
+        def Add(self, anime):
+            pass
 
+    Scribe = MyAnimeList()
+    
+    def usage(): print 'err'; return
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 
+                "v N:o:s: ILECTPYURFDG", [
+                "set-password=", 
+                "set-username=",
+                "search=",
+                "help", "verify"]
+                )
+    
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)
+        sys.exit(2)
+    
+    xid = False         # I 
+    title = False       # L
+    english = False     # E
+    score = False       # C
+    xtype = False       # T
+    episodes=False      # P
+    synonyms=False      # Y
+    status=False        # U
+    start_date=False    # R
+    end_date=False      # F 
+    synopsis=False      # D
+    synopsis_length=140 # -N
+    image=False         # G
+
+    for o, a in opts:
+        # Verify set credentials for further use.
+        if   o in ("-v", "--verify"):
+            Scribe.verify()
+        
+        # Set the password of the user.
+        elif o in ("--set-password"):
+            Scribe.setCredentials('password', a)
+            sys.exit()
+        
+        # Set the username of the user.
+        elif o in ("--set-username"):
+            Scribe.setCredentials('username', a)
+            sys.exit()
+
+        elif o in ("-I"):   xid = True
+        elif o in ("-L"):   title = True
+        elif o in ("-E"):   english = True
+        elif o in ("-C"):   score = True
+        elif o in ("-T"):   xtype = True
+        elif o in ("-P"):   episodes = True
+        elif o in ("-Y"):   synonyms = True
+        elif o in ("-U"):   status = True
+        elif o in ("-R"):   start_date = True
+        elif o in ("-F"):   end_date = True
+        elif o in ("-D"):   synopsis = True
+        elif o in ("-G"):   image = True
+
+        elif o in ("-N"):   synopsis_length = a
+
+        elif o in ("-s", "--search"):
+            Scribe.search(a, xid, title, english, 
+                    score, xtype, episodes, synonyms, status, start_date,
+                    end_date, synopsis, synopsis_length, image)    
+
+        else:
+            assert False, "unhandled option"
+ 
 if __name__ == '__main__': main()
 
 
