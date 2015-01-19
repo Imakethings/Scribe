@@ -123,12 +123,17 @@ def main():
                             ( self.list_length * (newadd - 1) ):( self.list_length * newadd )
                             ]
                            
+                        if len(''.join(text)) > synopsis_length:
+                            text.append("%s... \n"%' '.join(sentence)); break
+
                         # Add the combined portion to the list
                         text.append("%s \n"%' '.join(sentence))
                                 
                     # Uncomment this line to remove the last \n character shortening the table but making it less readable. 
                     # text[len(text)-1]=text[len(text)-1].replace("\n","")
                     
+                    # /\[\w]+|\[/\w]+|\<\w>+|\</\w>+|\<\w+? \/\>/g                        
+
                     texts.append(''.join(text))
                 else:
                     texts.append("%s \n"%' '.join(words))
@@ -151,7 +156,7 @@ def main():
 
                 # Headers to connect to MALAPI.
                 self.headers = {
-                        'User-Agent':'',
+                        'User-Agent':'api-indiv-36634BEE58157FB1D1C1E0B5A5E0AE73',
                         }
                 
                 # Is the connection set?
@@ -317,7 +322,7 @@ def main():
         elif o in ("-D"):   synopsis = True
         elif o in ("-G"):   image = True
 
-        elif o in ("-N"):   synopsis_length = a
+        elif o in ("-N"):   synopsis_length = int(a)
 
         elif o in ("-s", "--search"):
             Scribe.search(a, xid, title, english, 

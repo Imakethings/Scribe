@@ -2,56 +2,21 @@
 
 Install scribe
 ```bash
-wget -P /usr/local/bin/scribe https://raw.githubusercontent.com/Imakethings/Scribe/master/scribe.py
+$ 
 ```
 
 ## Commands
 
-```python
-scribe -watch
+Set password and username.
+
+```bash
+$ scribe --set-password <value>
+$ scribe --set-username <value>
 ```
-Returns a list of things you have to watch
 
-```python
-scribe -viewing
+Validate the set user credentials.
+
+```bash
+$ scribe -v 
+$ scribe --verify
 ```
-Returns the list of things you are viewing
-
-```python
-scribe -finished
-```
-Returns a list of things you finished (Showoff!)
-
-```python
-scribe -add [-Ww, -Vv, -Ff] <name>
-```
-Adds specific anime to said list if it doesn't exist already
-
-```python
-scribe -remove [-Ww, -Vv, -Ff] <name>
-```
-Removes specific anime from said list if it exists.
-
-```python
-scribe -view <name> 
-```
-Moves name from the -watch to the -viewing list.
-
-```python
-scribe -finish <name>
-```
-Moves name from the -viewing to the -finished list.
-
-### Syncing.
-
-```python
-scribe -username <username>
-```
-Stores your www.myanimelist.net username.
-
-```python
-scribe -password <password>
-```
-Stores your www.myanimelist.net password.
-
-######Do this at own risk! We will prompt you for your password each sync if left empty.
