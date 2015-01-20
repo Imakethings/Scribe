@@ -23,7 +23,7 @@ $ scribe --search
 ##--search
 
 Parameter|value|
--|-|
+---------|-----|
 -i|Id|
 -l|Title|
 -e|English|
@@ -40,7 +40,7 @@ Parameter|value|
 ----------
 
 Parameter|argument|description|
--|-|
+---------|--------|-----------|
 -w  |**int**| How many results we should show. |
 -n  |**int**| The length of the synopsis.|
 
