@@ -13,7 +13,7 @@ import ConfigParser, random
 # It handles the search terms, verification and a few other things.
 # Sys is the module used by 'Getopt' to handle the arguments given to the script. We only use sys.argv/sys.exit() most likely.
 # Math is here for flooring float numbers. (//)
-import getopt, sys, math
+import getopt, sys, math, re
 
 # ELY or ElementTree is a XML parser. We need this because MAL API returns XML objects. 
 # This simply formats them to recursive lists which can be called as object or content.
@@ -103,8 +103,12 @@ def main():
                 sentence = []
                 text = []
 
-                # Put all the words in a words array.
                 if string == None: string = 'None'
+
+                # Replace some nasty shit myAnimeList returns.
+                string = re.sub("\[\w]+|\[/\w]+|\<\w>+|\</\w>+|\<\w+? \/\>|\&\w+\;|\&\w-\w+\;", "", string)
+
+                # Put all the words in a words array.
                 words = string.split()
                 
                 # If the length of the string is bigger then 32. 
@@ -123,6 +127,7 @@ def main():
                             ( self.list_length * (newadd - 1) ):( self.list_length * newadd )
                             ]
                            
+                    
                         if len(''.join(text)) > synopsis_length:
                             text.append("%s... \n"%' '.join(sentence)); break
 
@@ -177,6 +182,7 @@ def main():
                 except Exception as e:
                     print "%s"%e;
                     self.set = False
+
       
     class MyAnimeList():
         def __init__(self):
@@ -197,11 +203,11 @@ def main():
         def verify(self):                
             Verify = Connection('http://myanimelist.net/api/account/verify_credentials.xml')
             if Verify.set:
-                print "The user '%s' has succefully verified, (%s)"%(Verify.tree[1].text, Verify.tree[0].text)
+                print "The user '%s' has succefully verified. (%s)"%(Verify.tree[1].text, Verify.tree[0].text)
             else: 
                 print "Are you sure you have the correct username and password?\n$ --set-password\n$ --set-username"
 
-        def search(self, search,
+        def search(self, search, results,
                    xid=False,        title=True,     english=False, 
                    score=True,       xtype=False,    episodes=True,    
                    synonyms=False,   status=True,    start_date=False, 
@@ -252,26 +258,25 @@ def main():
             # Append this table to add a row.
             table_data = [table_nav.heading]
 
-            appendResult(5)
+            appendResult(results)
 
             # Build the table and add the title.
             table = AsciiTable(table_data, table_nav.title)
 
             print table.table
 
-        def Add(self, anime):
+        def add(self, anime):
             pass
 
     Scribe = MyAnimeList()
-    
-    def usage(): print 'err'; return
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 
-                "v N:o:s: ILECTPYURFDG", [
+                "w:n: ilectpyurfdg", [
                 "set-password=", 
                 "set-username=",
                 "search=",
+                "add=",
                 "help", "verify"]
                 )
     
@@ -294,9 +299,11 @@ def main():
     synopsis_length=140 # -N
     image=False         # G
 
+    results=5           # -A
+
     for o, a in opts:
         # Verify set credentials for further use.
-        if   o in ("-v", "--verify"):
+        if   o in ("--verify"):
             Scribe.verify()
         
         # Set the password of the user.
@@ -309,28 +316,33 @@ def main():
             Scribe.setCredentials('username', a)
             sys.exit()
 
-        elif o in ("-I"):   xid = True
-        elif o in ("-L"):   title = True
-        elif o in ("-E"):   english = True
-        elif o in ("-C"):   score = True
-        elif o in ("-T"):   xtype = True
-        elif o in ("-P"):   episodes = True
-        elif o in ("-Y"):   synonyms = True
-        elif o in ("-U"):   status = True
-        elif o in ("-R"):   start_date = True
-        elif o in ("-F"):   end_date = True
-        elif o in ("-D"):   synopsis = True
-        elif o in ("-G"):   image = True
+        elif o in ("-i"):   xid = True
+        elif o in ("-l"):   title = True
+        elif o in ("-e"):   english = True
+        elif o in ("-c"):   score = True
+        elif o in ("-t"):   xtype = True
+        elif o in ("-p"):   episodes = True
+        elif o in ("-y"):   synonyms = True
+        elif o in ("-u"):   status = True
+        elif o in ("-r"):   start_date = True
+        elif o in ("-f"):   end_date = True
+        elif o in ("-d"):   synopsis = True
+        elif o in ("-g"):   image = True
 
-        elif o in ("-N"):   synopsis_length = int(a)
+        elif o in ("-n"):   synopsis_length = int(a)
 
-        elif o in ("-s", "--search"):
-            Scribe.search(a, xid, title, english, 
+        elif o in ("-w"):   results = int(a)
+
+        elif o in ("--search"):
+            Scribe.search(a, results, xid, title, english, 
                     score, xtype, episodes, synonyms, status, start_date,
                     end_date, synopsis, synopsis_length, image)    
 
+        elif o in ("--add"):
+            Scribe.add()
+
         else:
-            assert False, "unhandled option"
+            print 'What'
  
 if __name__ == '__main__': main()
 
